@@ -31,7 +31,6 @@ class Database : noncopyable
 		sqlid_t allocId(std::string table);
 
 		static void dbExecQuery(shared_connection con, std::string query);
-		void dbExecQuery(std::string query);
 
 		static std::vector<sqlid_t> dbSelectIds(shared_connection con, const std::string table,
 														const std::string condition, const std::string orderBy);
@@ -71,10 +70,10 @@ class Database : noncopyable
 		bean_ptr<C> loadBean(sqlid_t objId);
 
 		template<class C>
-		std::vector<sqlid_t> getBeanIds();
+		std::vector<sqlid_t> getBeanIds(const std::string condition="", const std::string orderBy="");
 
 		template<class C>
-		std::vector< bean_ptr<C> > getAllBeans();
+		std::vector< bean_ptr<C> > getAllBeans(const std::string condition="", const std::string orderBy="");
 
 		template<class C>
 		bean_ptr<C> copyBean(const C& c);
@@ -84,6 +83,8 @@ class Database : noncopyable
 
 		template<class C>
 		bean_ptr<C> manageBean(C* ptr);
+		
+		void dbExecQuery(std::string query);
 };
 
 } //namespace hiberlite;
