@@ -96,6 +96,18 @@ std::vector< bean_ptr<C> > Database::getAllBeans()
 	return ans;
 }
 
+template<class C>
+std::vector< bean_ptr<C> > Database::getAllBeanAfter(const sqlid_t id)
+{
+	std::vector<sqlid_t> ids=dbSelectIds(con, getClassName<C>(),std::string(HIBERLITE_PRIMARY_KEY_COLUMN)+">"+Transformer::toSQLiteValue(id), "" );
+	size_t N=ids.size();
+	std::vector< bean_ptr<C> > ans;
+	ans.reserve(N);
+	for(size_t i=0;i<N;i++)
+		ans.push_back( loadBean<C>(ids[i]) );
+	return ans;
+}
+
 
 template<class C>
 inline void Database::registerBeanClass()

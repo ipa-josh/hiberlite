@@ -72,6 +72,9 @@ class Database : noncopyable
 
 		template<class C>
 		std::vector<sqlid_t> getBeanIds();
+		
+		template<class C>
+		std::vector< bean_ptr<C> > getAllBeanAfter(const sqlid_t id);
 
 		template<class C>
 		std::vector< bean_ptr<C> > getAllBeans();
