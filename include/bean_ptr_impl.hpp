@@ -1,19 +1,20 @@
 namespace hiberlite{
 
 template<class C>
-real_bean<C>::real_bean(const bean_key _key, C* _obj) : key(_key), obj(_obj), forgotten(false)
+real_bean<C>::real_bean(const bean_key _key, C* _obj) : key(_key), obj(_obj), forgotten(false), only_ref(false)
 {}
 
 template<class C>
 real_bean<C>::~real_bean()
 {
 	save();
-	delete obj;
+	if(!only_ref)
+		delete obj;
 }
 
 template<class C>
 void real_bean<C>::destroy() {
-	if(forgotten)
+	if(forgotten || only_ref)
 		return;
 	Database::dbDelete(key, *obj);
 	delete obj;
@@ -24,7 +25,7 @@ void real_bean<C>::destroy() {
 
 template<class C>
 void real_bean<C>::save() {
-	if(forgotten)
+	if(forgotten || only_ref)
 		return;
 	if(!obj)
 		return;
@@ -34,7 +35,7 @@ void real_bean<C>::save() {
 template<class C>
 C* real_bean<C>::operator->()
 {
-	if(forgotten)
+	if(forgotten || only_ref)
 		return NULL;
 	loadLazy();
 	if(!obj)
@@ -45,7 +46,7 @@ C* real_bean<C>::operator->()
 template<class C>
 C* real_bean<C>::get()
 {
-	if(forgotten)
+	if(forgotten || only_ref)
 		return NULL;
 	loadLazy();
 	if(!obj)
@@ -105,7 +106,7 @@ void bean_ptr<C>::hibernate(Archive & ar)
 
 	ar & hiberlite::sql_nvp< sqlid_t > ("id", tmp_id );
 	if(ar.is_loading())
-		*this=Registry<C>::get( bean_key(ar.getConnection(), tmp_id) );
+		*this=Registry<C>::get( bean_key(ar.getConnection(), tmp_id, false) );
 }
 
 template<class C>
@@ -129,7 +130,7 @@ void bean_ptr<C>::save() {
 }
 
 template<class C>
-sqlid_t bean_ptr<C>::get_id() {
+sqlid_t bean_ptr<C>::get_id() const {
 	if( !shared_res< real_bean<C> >::get_object() )
 		return Database::NULL_ID;
 	return shared_res< real_bean<C> >::get_object()->get_key().id;

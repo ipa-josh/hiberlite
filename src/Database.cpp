@@ -3,18 +3,29 @@
 
 namespace hiberlite{
 
-Database::Database() : mx(NULL)
+Database::Database() : mx(NULL), transaction_in_progress(false)
 {
 }
 
-Database::Database(std::string fname) : mx(NULL)
+Database::Database(std::string fname) : mx(NULL), transaction_in_progress(false)
 {
 	open(fname);
 }
 
 Database::~Database()
 {
+	if(transaction_in_progress) commit_transaction();
 	close();
+}
+
+void Database::begin_transaction() {
+	if(!transaction_in_progress) dbExecQuery(con,"BEGIN TRANSACTION;");
+	transaction_in_progress=true;
+}
+
+void Database::commit_transaction() {
+	if(transaction_in_progress) dbExecQuery(con,"COMMIT TRANSACTION;");
+	transaction_in_progress=false;
 }
 
 void Database::open(std::string fname)

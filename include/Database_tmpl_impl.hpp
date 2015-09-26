@@ -6,16 +6,18 @@ namespace hiberlite{
 template<class C>
 void Database::dbDelete(bean_key key, C& bean)
 {
-	try{
-		dbExecQuery(key.con,"ROLLBACK TRANSACTION;");
-	}catch(...){}
-	dbExecQuery(key.con,"BEGIN TRANSACTION;");
+	if(!key.transaction_in_progress)  {
+		try{
+			dbExecQuery(key.con,"ROLLBACK TRANSACTION;");
+		}catch(...){}
+		dbExecQuery(key.con,"BEGIN TRANSACTION;");
+	}
 
 		ChildKiller ck;
 		ck.killChildren(key,bean);
 		dbDeleteRows(key.con, Database::getClassName<C>(), HIBERLITE_PRIMARY_KEY_COLUMN, key.id);
 
-	dbExecQuery(key.con,"COMMIT TRANSACTION;");
+	if(!key.transaction_in_progress) dbExecQuery(key.con,"COMMIT TRANSACTION;");
 }
 
 template<class C>
@@ -30,17 +32,19 @@ void Database::dbDeleteRows(shared_connection con, std::string table, std::strin
 template<class C>
 void Database::dbUpdate(bean_key key, C& bean)
 {
-	try{
-		dbExecQuery(key.con,"ROLLBACK TRANSACTION;");
-	}catch(...){}
-	dbExecQuery(key.con,"BEGIN TRANSACTION;");
+	if(!key.transaction_in_progress) {
+		try{
+			dbExecQuery(key.con,"ROLLBACK TRANSACTION;");
+		}catch(...){}
+		dbExecQuery(key.con,"BEGIN TRANSACTION;");
+	}
 
 		ChildKiller ck;
 		ck.killChildren(key,bean);
 		BeanUpdater u;
 		u.update(key, bean);
 
-	dbExecQuery(key.con,"COMMIT TRANSACTION;");
+	if(!key.transaction_in_progress) dbExecQuery(key.con,"COMMIT TRANSACTION;");
 }
 
 template<class C>
@@ -67,7 +71,7 @@ template<class C>
 inline bean_ptr<C> Database::manageBean(C* ptr)
 {
 	sqlid_t id=allocId( Database::getClassName<C>() );
-	bean_key key(con,id);
+	bean_key key(con,id,transaction_in_progress);
 	dbUpdate(key,*ptr);
 	return Registry<C>::createBeanPtr(key,ptr);
 }
@@ -75,7 +79,7 @@ inline bean_ptr<C> Database::manageBean(C* ptr)
 template<class C>
 inline bean_ptr<C> Database::loadBean(sqlid_t id)
 {
-	return Registry<C>::get( bean_key(con,id) );
+	return Registry<C>::get( bean_key(con,id,transaction_in_progress) );
 }
 
 template<class C>

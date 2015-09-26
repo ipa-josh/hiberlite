@@ -19,6 +19,9 @@ public:
 	inline C* getRes(){
 		return res;
 	}
+	inline const C* getRes() const {
+		return res;
+	}
 	inline virtual ~shared_cnt_obj_pair(){
 		if(refCount)
 			throw std::logic_error("resource is busy");
@@ -86,6 +89,12 @@ public:
 		return res->getRes();
 	}
 
+	inline const C* get_object() const{
+		if(!res)
+			return NULL;
+		return res->getRes();
+	}
+
 	inline C* operator->(){
 		return get_object();
 	}
@@ -127,9 +136,10 @@ class bean_key{
 public:
 	sqlid_t id;
 	shared_connection con;
+	bool transaction_in_progress;
 
-	bean_key(sqlid_t _id, shared_connection _con) : id(_id), con(_con) {}
-	bean_key(shared_connection _con, sqlid_t _id) : id(_id), con(_con) {}
+	bean_key(sqlid_t _id, shared_connection _con, const bool _transaction_in_progress) : id(_id), con(_con), transaction_in_progress(_transaction_in_progress) {}
+	bean_key(shared_connection _con, sqlid_t _id, const bool _transaction_in_progress) : id(_id), con(_con), transaction_in_progress(_transaction_in_progress) {}
 	~bean_key() {}
 	bean_key();
 

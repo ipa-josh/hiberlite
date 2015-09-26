@@ -17,6 +17,7 @@ class Database : noncopyable
 		friend class real_bean;
 
 		ModelExtractor* mx;
+		bool transaction_in_progress;
 
 		template<class C>
 		static void dbDelete(bean_key key, C& bean);
@@ -58,6 +59,9 @@ class Database : noncopyable
 
 		template<class C>
 		inline void registerBeanClass();
+		
+		void begin_transaction();
+		void commit_transaction();
 
 		Model getModel();
 		inline shared_connection getConnection() { return con; }

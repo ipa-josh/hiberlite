@@ -1,6 +1,9 @@
 #ifndef BEAN_PTR_H_INCLUDED
 #define BEAN_PTR_H_INCLUDED
 
+#include <boost/shared_ptr.hpp>
+
+
 namespace hiberlite{
 
 class Database;
@@ -26,13 +29,14 @@ class real_bean : noncopyable {
 
 		void destroy();
 		bool destroyed() const { return forgotten; }
+		void set_only_ref() {only_ref=true;}
 
 	protected:
 		inline void loadLazy();
 
 		bean_key key;
 		C* obj;
-		bool forgotten;
+		bool forgotten, only_ref;
 
 	private:
 		friend class Registry<C>;
@@ -67,8 +71,13 @@ class bean_ptr : public shared_res< real_bean<C> >
 		bool destroyed() {
 			return shared_res< real_bean<C> >::get_object()->destroyed();
 		}
+		boost::shared_ptr<C> shared_ptr() {
+			C *ptr = shared_res< real_bean<C> >::get_object()->get();
+			shared_res< real_bean<C> >::get_object()->set_only_ref();
+			return boost::shared_ptr<C>( ptr );
+		}
 
-		inline sqlid_t get_id();
+		inline sqlid_t get_id() const;
 		inline C& operator*();
 		inline C* operator->();
 };

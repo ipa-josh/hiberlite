@@ -24,7 +24,7 @@ void ModelExtractor::extractModel(shared_connection _con)
 {
 	C* bean;
 	construct(*this, &bean, static_cast<unsigned int>(0));
-	bean_key key(_con, Database::NULL_ID);
+	bean_key key(_con, Database::NULL_ID, false);
 	startWalk(*bean, key);
 	destroy(*this, bean, static_cast<unsigned int>(0));
 }
